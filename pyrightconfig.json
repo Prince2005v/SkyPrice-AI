@@ -1,0 +1,21 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Darwin",
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "venv",
+    "**/__pycache__",
+    "**/*.pyc"
+  ],
+  "extraPaths": [
+    "."
+  ],
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}

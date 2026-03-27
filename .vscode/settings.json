@@ -1,4 +1,9 @@
 {
     "python.defaultInterpreterPath": "/Applications/Developer/Project/Flight Fare Prediction /venv/bin/python",
-    "python.analysis.extraPaths": ["."]
+    "python.analysis.extraPaths": ["."],
+    "python.analysis.venvPath": "/Applications/Developer/Project/Flight Fare Prediction ",
+    "python.venvFolders": ["venv"],
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.useLibraryCodeForTypes": true,
+    "python.analysis.diagnosticMode": "workspace"
 }

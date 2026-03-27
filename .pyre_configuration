@@ -1,0 +1,17 @@
+{
+  "site_package_search_strategy": "pep561",
+  "source_directories": [
+    {
+      "import_root": ".",
+      "source": "."
+    }
+  ],
+  "search_path": [
+    "venv/lib/python3.14/site-packages"
+  ],
+  "python_version": "3.14",
+  "strict": false,
+  "ignore": [
+    "venv"
+  ]
+}
