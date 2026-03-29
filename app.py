@@ -45,180 +45,204 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Outfit', sans-serif !important;
 }
 
 /* Background */
 .stApp {
-    background: radial-gradient(ellipse at top right, #0f2027, #203a43, #2c5364);
+    background: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #0f172a 40%, #000000 100%) !important;
+    background-attachment: fixed !important;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
-    background: rgba(15, 32, 39, 0.95) !important;
-    border-right: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(15,23,42,0.95) 0%, rgba(30,27,75,0.95) 100%) !important;
+    border-right: 1px solid rgba(139, 92, 246, 0.2);
+    box-shadow: 4px 0 24px rgba(139, 92, 246, 0.1);
 }
 
 /* Tab styling */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 8px;
-    background: rgba(255,255,255,0.04);
-    border-radius: 12px;
-    padding: 4px;
+    gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 16px;
+    padding: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
 }
 .stTabs [data-baseweb="tab"] {
-    border-radius: 9px;
-    padding: 8px 20px;
+    border-radius: 12px;
+    padding: 10px 24px;
     color: #94a3b8;
-    font-weight: 500;
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 .stTabs [aria-selected="true"] {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6) !important;
     color: white !important;
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
 }
 
 /* Input overrides */
-.stSelectbox label, .stDateInput label, .stTimeInput label, .stRadio label {
+.stSelectbox label, .stDateInput label, .stTimeInput label, .stRadio label, .stTextInput label, .stNumberInput label {
     color: #cbd5e1 !important;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+div[data-baseweb="select"], div[data-baseweb="input"] {
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    transition: all 0.2s ease;
+}
+div[data-baseweb="select"]:hover, div[data-baseweb="input"]:hover {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
 }
 
 /* Primary button */
-.stButton > button[kind="primary"],
-.stButton > button {
+.stButton > button[kind="primary"] {
     width: 100%;
-    border-radius: 12px;
-    height: 3.2em;
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 14px;
+    height: 3.5em;
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
     color: white;
     font-weight: 700;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     border: none;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 15px rgba(59,130,246,0.35);
-    letter-spacing: 0.02em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 6px 20px rgba(0, 114, 255, 0.4);
+}
+.stButton > button[kind="primary"]:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 114, 255, 0.6);
+    background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%);
+    color: white;
+}
+
+/* Normal button */
+.stButton > button {
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    transition: all 0.3s;
 }
 .stButton > button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59,130,246,0.5);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ec4899;
+    color: #ec4899;
 }
 
 /* Prediction card */
 .prediction-card {
-    background: linear-gradient(135deg, rgba(30,41,59,0.85), rgba(15,23,42,0.95));
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 20px;
-    padding: 36px 28px;
+    background: linear-gradient(145deg, rgba(30,41,59,0.7), rgba(15,23,42,0.9));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 24px;
+    padding: 40px 30px;
     text-align: center;
     margin-top: 24px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
-    animation: fadeSlideUp 0.5s ease;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+.prediction-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, #ec4899, #8b5cf6, #00c6ff);
 }
 @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(18px); }
+    from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
 .fare-label {
-    color: #64748b;
-    font-size: 0.8rem;
-    font-weight: 600;
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
-    margin-bottom: 6px;
+    letter-spacing: 0.15em;
+    margin-bottom: 12px;
 }
 .fare-amount {
-    font-size: 3.2rem;
+    font-size: 4rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    background: linear-gradient(to right, #60a5fa, #c084fc, #f472b6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     line-height: 1.1;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
 }
 .fare-range {
-    color: #475569;
-    font-size: 0.82rem;
-    margin-top: 6px;
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    margin-top: 12px;
+    font-weight: 500;
 }
 
 /* Insight cards */
 .insight-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 18px 20px;
-    transition: border-color 0.2s;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 22px 20px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 .insight-card:hover {
-    border-color: rgba(59,130,246,0.4);
+    border-color: rgba(0, 198, 255, 0.4);
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 10px 25px rgba(0, 198, 255, 0.1);
 }
-.insight-icon { font-size: 1.4rem; margin-bottom: 4px; }
-.insight-title { color: #64748b; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
-.insight-value { color: #f1f5f9; font-size: 1.3rem; font-weight: 700; margin-top: 2px; }
-.insight-delta { font-size: 0.78rem; margin-top: 2px; }
+.insight-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.insight-title { color: #94a3b8; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+.insight-value { color: #f8fafc; font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
+.insight-delta { font-size: 0.85rem; margin-top: 4px; font-weight: 500;}
 
 /* Tips banner */
 .tips-banner {
-    background: rgba(16,185,129,0.08);
-    border: 1px solid rgba(16,185,129,0.25);
+    background: linear-gradient(90deg, rgba(16,185,129,0.1), rgba(5,150,105,0.05));
+    border-left: 4px solid #10b981;
     border-radius: 12px;
-    padding: 14px 18px;
-    margin-top: 12px;
-    font-size: 0.9rem;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 0.95rem;
     color: #6ee7b7;
+    backdrop-filter: blur(8px);
 }
 
 /* Route summary pill */
 .route-pill {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    background: rgba(59,130,246,0.12);
-    border: 1px solid rgba(59,130,246,0.25);
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
+    border: 1px solid rgba(139, 92, 246, 0.3);
     border-radius: 30px;
-    padding: 6px 18px;
-    font-size: 0.9rem;
-    color: #93c5fd;
+    padding: 8px 24px;
+    font-size: 0.95rem;
+    color: #e2e8f0;
     font-weight: 600;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* Metric overrides */
-div[data-testid="stMetricValue"] {
-    font-size: 1.8rem !important;
-    color: #38bdf8 !important;
-    font-weight: 700 !important;
-}
-div[data-testid="stMetricDelta"] > div {
-    font-size: 0.78rem !important;
+/* Modal text colors overrides */
+h3, p, span {
+    color: #f8fafc;
 }
 
-/* Chat message */
-div[data-testid="stChatMessage"] {
-    background: rgba(30,41,59,0.6) !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(255,255,255,0.07) !important;
-}
-
-/* Divider */
-hr { border-color: rgba(255,255,255,0.07) !important; }
-
-/* Warning / info overrides */
-div[data-testid="stAlert"] {
-    border-radius: 12px !important;
-}
-
-/* Progress bar color */
-.stProgress > div > div > div {
-    background: linear-gradient(90deg, #3b82f6, #818cf8) !important;
-}
 </style>
 """,
     unsafe_allow_html=True,
@@ -317,6 +341,56 @@ def price_sentiment(price: float) -> tuple[str, str]:
         return "🔴 Premium Fare", "#ef4444"
 
 
+# ─── Booking System ───────────────────────────────────────────────────────────
+@st.dialog("🎉 Booking Confirmed", width="large")
+def show_ticket(ctx, passenger_name):
+    import uuid
+    pnr = uuid.uuid4().hex[:6].upper()
+    st.balloons()
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.2)); 
+                    border: 1px solid #10b981; border-radius: 16px; padding: 24px;">
+            <p><b>PNR:</b> <span style="font-size: 1.2rem; letter-spacing: 2px; color: #34d399;">{pnr}</span></p>
+            <hr style="border-color: rgba(16,185,129,0.3);">
+            <p><b>Passenger:</b> {passenger_name}</p>
+            <p><b>Route:</b> {ctx.get('route', 'N/A')}</p>
+            <p><b>Airline:</b> {ctx.get('airline', 'N/A')} ({ctx.get('travel_class', 'N/A')})</p>
+            <p><b>Departure:</b> {ctx.get('journey_date', 'N/A')} at {ctx.get('dep_time', 'N/A')}</p>
+            <p><b>Amount Paid:</b> ₹{ctx.get('predicted_fare', 'N/A')}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("Close Ticket"):
+        st.rerun()
+
+@st.dialog("🎫 Book Your Flight")
+def booking_dialog(ctx):
+    st.markdown("### Passenger Details")
+    p_name = st.text_input("Full Name (as per ID)")
+    p_email = st.text_input("Email Address")
+    p_phone = st.text_input("Phone Number")
+    
+    if st.button("✅ Confirm Booking", type="primary", use_container_width=True):
+        if p_name and p_email and p_phone:
+            st.session_state.trigger_ticket = {"ctx": ctx, "name": p_name}
+            st.rerun()
+        else:
+            st.warning("⚠️ Please fill in all required fields.")
+
+if "trigger_ticket" in st.session_state:
+    ticket_args = st.session_state.trigger_ticket
+    del st.session_state.trigger_ticket
+    show_ticket(ticket_args["ctx"], ticket_args["name"])
+
+def open_booking_modal():
+    st.session_state.open_booking_modal = True
+
+if st.session_state.pop("open_booking_modal", False):
+    if "last_prediction" in st.session_state:
+        booking_dialog(st.session_state["last_prediction"])
+
 # ─── Load Model ───────────────────────────────────────────────────────────────
 model = load_model()
 
@@ -325,8 +399,8 @@ with st.sidebar:
     st.markdown(
         "<div style='text-align:center; padding: 10px 0;'>"
         "<span style='font-size:3rem;'>✈️</span>"
-        "<h2 style='margin:8px 0 0; color:#f1f5f9; font-weight:800; letter-spacing:-0.5px;'>SkyPrice AI</h2>"
-        "<p style='color:#64748b; font-size:0.8rem; margin:4px 0 0;'>Domestic Flight Fare Intelligence</p>"
+        "<h2 class='gradient-text' style='margin:8px 0 0; font-size: 2.2rem; font-weight:800; letter-spacing:-0.5px;'>SkyPrice AI</h2>"
+        "<p style='color:#94a3b8; font-size:0.85rem; margin:4px 0 0; font-weight: 500;'>Domestic Flight Intelligence</p>"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -358,12 +432,16 @@ with st.sidebar:
 
 # ─── Header ───────────────────────────────────────────────────────────────────
 st.markdown(
-    "<h1 style='margin-bottom:2px; font-size:2.4rem; font-weight:800; "
-    "background:linear-gradient(90deg,#38bdf8,#818cf8); "
-    "-webkit-background-clip:text; -webkit-text-fill-color:transparent;'>"
-    "✈️ SkyPrice AI Hub</h1>"
-    "<p style='color:#64748b; font-size:1rem; margin-top:0;'>"
-    "Real-time fare prediction · AI travel assistant · Voice commands</p>",
+    """
+    <div style='margin-bottom: 24px;'>
+        <h1 class='gradient-text' style='margin-bottom:0px; font-size:3.5rem; font-weight:800; letter-spacing: -0.02em;'>
+            ✈️ SkyPrice AI Hub
+        </h1>
+        <p style='color:#94a3b8; font-size:1.1rem; margin-top:8px; font-weight: 400;'>
+            Real-time Fare Prediction · Intelligent Travel Assistant · Seamless Booking
+        </p>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
@@ -405,9 +483,11 @@ with tab1:
                 value=(datetime.now() + timedelta(days=7)).date(),
             )
         with col5:
+            now_plus_2h = datetime.now() + timedelta(hours=2)
+            default_dep = now_plus_2h.replace(minute=0, second=0, microsecond=0).time()
             dep_time = st.time_input(
                 "🕐 Departure Time",
-                datetime.now().replace(hour=10, minute=0).time(),
+                default_dep,
             )
         with col6:
             # Days until departure — contextual info
@@ -581,6 +661,10 @@ with tab1:
                         f"Feature vector shape: {features.shape} | "
                         f"Active flags: {int(features.sum(axis=1).iloc[0])}"
                     )
+
+                # ── Proceed to Booking Button ──────────────────────────────
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.button("🎫 Proceed to Booking", type="primary", use_container_width=True, on_click=open_booking_modal)
 
 
 # ══════════════════════════════════════════════════════════════════════════════

@@ -1,7 +1,4 @@
 {
-  "venvPath": ".",
-  "venv": "venv",
-  "pythonVersion": "3.14",
   "pythonPlatform": "Darwin",
   "include": [
     "."

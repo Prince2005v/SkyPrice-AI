@@ -12,13 +12,14 @@ VALID_AIRLINES = [
     'Trujet', 'Vistara', 'Vistara Premium economy'
 ]
 
-VALID_SOURCES = ['Banglore', 'Chennai', 'Delhi', 'Kolkata', 'Mumbai']
-VALID_DESTINATIONS = ['Banglore', 'Cochin', 'Delhi', 'Hyderabad', 'Kolkata', 'New Delhi']
+VALID_SOURCES = ['Ahmedabad', 'Banglore', 'Chennai', 'Delhi', 'Goa', 'Hyderabad', 'Jaipur', 'Kolkata', 'Lucknow', 'Mumbai', 'Patna', 'Pune']
+VALID_DESTINATIONS = ['Ahmedabad', 'Banglore', 'Cochin', 'Delhi', 'Goa', 'Hyderabad', 'Jaipur', 'Kolkata', 'Lucknow', 'Mumbai', 'New Delhi', 'Patna', 'Pune']
 
 # OHE reference sets (drop_first=True: Air Asia & Banglore are reference categories)
+# Note: Hardcoded to match the trained model's original features exactly.
 _AIRLINE_OHE = [a for a in VALID_AIRLINES if a != 'Air Asia']
-_SOURCE_OHE   = [s for s in VALID_SOURCES if s != 'Banglore']
-_DEST_OHE     = [d for d in VALID_DESTINATIONS if d != 'Banglore']
+_SOURCE_OHE   = ['Chennai', 'Delhi', 'Kolkata', 'Mumbai']
+_DEST_OHE     = ['Cochin', 'Delhi', 'Hyderabad', 'Kolkata', 'New Delhi']
 
 FEATURE_ORDER = [
     'Class', 'Journey_Day', 'Journey_Month', 'Dep_Hour', 'Dep_Minute',

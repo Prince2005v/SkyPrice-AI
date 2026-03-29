@@ -12,3 +12,4 @@ streamlit-mic-recorder>=0.0.4
 gTTS>=2.4
 SpeechRecognition>=3.10
 pytest>=8.0
+ a

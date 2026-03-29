@@ -154,7 +154,7 @@ def test_invalid_source_raises():
     with pytest.raises(ValueError, match="Invalid source"):
         preprocess_input(
             airline="IndiGo",
-            source="Pune",
+            source="Atlantis",
             destination="Delhi",
             journey_date=date(2025, 6, 1),
             dep_time=datetime(2025, 6, 1, 10, 0).time(),
@@ -166,7 +166,7 @@ def test_invalid_destination_raises():
         preprocess_input(
             airline="IndiGo",
             source="Mumbai",
-            destination="Goa",
+            destination="Narnia",
             journey_date=date(2025, 6, 1),
             dep_time=datetime(2025, 6, 1, 10, 0).time(),
         )
