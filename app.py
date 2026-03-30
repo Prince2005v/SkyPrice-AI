@@ -748,20 +748,23 @@ with tab2:
 
 
 # ─── Footer ───────────────────────────────────────────────────────────────────
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("---")
-fc1, fc2, fc3 = st.columns([2, 1, 1])
-with fc1:
-    st.markdown(
-        "<p style='color:#475569; font-size:0.85rem;'>"
-        "Powered by <b>RandomForestRegressor</b> · <b>Google Gemini 1.5 Flash</b> · "
-        "<b>Streamlit</b> | Training data: Kaggle Indian Flight Dataset"
-        "</p>",
-        unsafe_allow_html=True,
-    )
-with fc2:
-    st.markdown("**🔗 Resources**")
-    st.markdown("[GitHub Repository](https://github.com/Prince2005v/SkyPrice-AI)")
-with fc3:
-    st.markdown("**📬 Support**")
-    st.markdown("[Open an Issue](https://github.com/Prince2005v/SkyPrice-AI/issues)")
+def render_footer():
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("---")
+    fc1, fc2, fc3 = st.columns([2, 1, 1])
+    with fc1:
+        st.markdown(
+            "<p style='color:#475569; font-size:0.85rem;'>"
+            "Powered by <b>RandomForestRegressor</b> · <b>Google Gemini 1.5 Flash</b> · "
+            "<b>Streamlit</b> | Training data: Kaggle Indian Flight Dataset"
+            "</p>",
+            unsafe_allow_html=True,
+        )
+    with fc2:
+        st.markdown("**🔗 Resources**")
+        st.markdown("[GitHub Repository](https://github.com/Prince2005v/SkyPrice-AI)")
+    with fc3:
+        st.markdown("**📬 Support**")
+        st.markdown("[Open an Issue](https://github.com/Prince2005v/SkyPrice-AI/issues)")
+
+render_footer()
