@@ -285,12 +285,19 @@ def build_system_prompt(context: dict | None = None) -> str:
 def get_ai_response(prompt: str, context: dict | None = None) -> str:
     if not model_gemini:
         return "⚠️ Gemini API Key is missing. Please add `GOOGLE_API_KEY` to your `.env` file."
-    try:
-        full_prompt = build_system_prompt(context) + f"\n\nUser: {prompt}"
-        response = model_gemini.generate_content(full_prompt)
-        return response.text
-    except Exception as e:
-        return f"❌ Error contacting Gemini: {e}"
+    
+    full_prompt = build_system_prompt(context) + f"\n\nUser: {prompt}"
+    
+    for attempt in range(3):
+        try:
+            response = model_gemini.generate_content(full_prompt)
+            return response.text
+        except Exception as e:
+            if attempt == 2:
+                return f"❌ Error contacting Gemini after 3 attempts. Please try again later. (Details: {e})"
+            time_module.sleep(1.5 ** attempt)  # Exponential backoff
+            
+    return "❌ Connection timeout."
 
 
 def text_to_speech(text: str) -> bytes | None:
