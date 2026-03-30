@@ -393,6 +393,71 @@ def booking_dialog(ctx):
         else:
             st.warning("⚠️ Please fill in all required fields.")
 
+
+@st.dialog("✈️ SkyPrice AI Assistant", width="large")
+def show_chat_dialog():
+    st.caption("Ask anything about fares, routes, baggage, airports, or travel tips.")
+
+    if not GOOGLE_API_KEY:
+        st.warning(
+            "🔑 **AI Assistant is offline.**  \n"
+            "Add `GOOGLE_API_KEY` to a `.env` file in the project root and restart."
+        )
+    else:
+        last_ctx = st.session_state.get("last_prediction")
+        if last_ctx:
+            st.markdown(
+                f'<div class="route-pill">📌 Context: {last_ctx.get("route", "")} · {last_ctx.get("airline", "")} · ₹{last_ctx.get("predicted_fare", "")}</div>',
+                unsafe_allow_html=True,
+            )
+
+        if "messages" not in st.session_state:
+            st.session_state.messages = []
+
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        st.markdown("---")
+        with st.expander("🎙️ Voice Input", expanded=False):
+            audio = mic_recorder(
+                start_prompt="🔴 Start Recording",
+                stop_prompt="⏹️ Stop & Send",
+                key="recorder",
+            )
+        
+        user_input = None
+        if audio and audio.get("bytes"):
+            with st.spinner("Transcribing audio…"):
+                user_input = transcribe_audio(audio["bytes"])
+
+        if text_input := st.chat_input("Ask me about flights, fares, or travel tips…"):
+            user_input = text_input
+
+        if user_input:
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            with st.chat_message("user"):
+                st.markdown(user_input)
+
+            with st.chat_message("assistant"):
+                with st.spinner("Thinking…"):
+                    response_text = get_ai_response(user_input, context=last_ctx)
+                    st.markdown(response_text)
+                    _resp_str: str = str(response_text)
+                    tts_text: str = _resp_str[:400].rsplit(" ", 1)[0]
+                    audio_data = text_to_speech(tts_text)
+                    if audio_data:
+                        autoplay_audio(audio_data)
+
+            st.session_state.messages.append({"role": "assistant", "content": response_text})
+            st.rerun()
+
+        if st.session_state.get("messages"):
+            if st.button("🗑️ Clear Chat History", use_container_width=False):
+                st.session_state.messages = []
+                st.rerun()
+
+
 if "trigger_ticket" in st.session_state:
     ticket_args = st.session_state.trigger_ticket
     del st.session_state.trigger_ticket
@@ -459,13 +524,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-tab1, tab2 = st.tabs(["🔮 Price Predictor", "🤖 AI Travel Assistant"])
-
-
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — PRICE PREDICTOR
+# MAIN PAGE — PRICE PREDICTOR
 # ══════════════════════════════════════════════════════════════════════════════
-with tab1:
+with st.container():
     if model is None:
         st.error(
             "🚨 **Prediction engine not found.**  \n"
@@ -684,7 +746,7 @@ with tab1:
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — AI TRAVEL ASSISTANT
 # ══════════════════════════════════════════════════════════════════════════════
-with tab2:
+if False:  # AI Travel Assistant moved to floating chat widget below
     st.subheader("🤖 Your Personal Travel Assistant")
     st.caption("Ask anything about fares, routes, baggage, airports, or travel tips.")
 
@@ -781,4 +843,47 @@ def render_footer():
         st.markdown("**📬 Support**")
         st.markdown("[Open an Issue](https://github.com/Prince2005v/SkyPrice-AI/issues)")
 
+
 render_footer()
+
+
+# ─── Floating Chat Button ─────────────────────────────────────────────────────
+st.markdown(
+    """
+    <style>
+    .floating-fab { display: none; }
+    /* Target the container of the FAB button */
+    .element-container:has(.floating-fab) + .element-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+    .element-container:has(.floating-fab) + .element-container button {
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        font-size: 24px !important;
+        background: linear-gradient(135deg, #0ea5e9, #2563eb) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+        transition: transform 0.2s ease !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .element-container:has(.floating-fab) + .element-container button:hover {
+        transform: scale(1.1) !important;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5) !important;
+    }
+    </style>
+    <div class="floating-fab"></div>
+    """,
+    unsafe_allow_html=True
+)
+
+if st.button("✈️", help="Open AI Travel Assistant"):
+    show_chat_dialog()
+
