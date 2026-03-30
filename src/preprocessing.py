@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
-from datetime import date, datetime
+from datetime import date, datetime, time
 import time as time_module
+from typing import Dict, Any
 
 # ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,7 @@ FEATURE_ORDER = [
 
 # ─── Validation helpers ────────────────────────────────────────────────────────
 
-def _validate_inputs(airline, source, destination, journey_date, dep_time, flight_class):
+def _validate_inputs(airline: str, source: str, destination: str, journey_date: date | datetime, dep_time: time, flight_class: int) -> None:
     """Raise ValueError with a clear message if any input is invalid."""
     if airline not in VALID_AIRLINES:
         raise ValueError(
@@ -62,7 +63,7 @@ def _validate_inputs(airline, source, destination, journey_date, dep_time, fligh
 
 # ─── Public API ───────────────────────────────────────────────────────────────
 
-def preprocess_input(airline, source, destination, journey_date, dep_time, flight_class=0):
+def preprocess_input(airline: str, source: str, destination: str, journey_date: date | datetime, dep_time: time, flight_class: int = 0) -> pd.DataFrame:
     """
     Preprocess raw user inputs into a feature DataFrame ready for model inference.
 
@@ -122,7 +123,7 @@ def preprocess_input(airline, source, destination, journey_date, dep_time, fligh
     return df[FEATURE_ORDER].astype(int)
 
 
-def get_preprocessing_summary(airline, source, destination, journey_date, dep_time, flight_class=0):
+def get_preprocessing_summary(airline: str, source: str, destination: str, journey_date: date | datetime, dep_time: time, flight_class: int = 0) -> Dict[str, Any]:
     """
     Return a human-readable summary dict of the encoded features.
     Useful for debugging and display in the UI.
