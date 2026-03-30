@@ -13,11 +13,12 @@
 
 | Feature | Description |
 |---|---|
-| 🔮 **Fare Prediction** | ML-based price estimate for 12 airlines across 5 origins × 6 destinations |
+| 🔮 **Fare Prediction** | ML-based price estimate for 12 airlines across expanded Indian domestic routes |
+| 🛫 **Booking System** | Simulated E-Ticket generation with PNR creation and passenger detail capture |
 | 📊 **Price Insights** | Confidence score, price sentiment, volatility indicator, booking tips |
 | 🤖 **AI Travel Assistant** | Google Gemini 1.5 Flash-powered chatbot with flight context awareness |
 | 🎙️ **Voice Commands** | Microphone recording → Speech-to-Text → AI response → TTS audio playback |
-| 🌐 **Premium UI** | Dark glassmorphism design, animated cards, responsive layout |
+| 🌐 **Premium Aesthetic** | Dark glassmorphism design, animated gradient text, responsive modern layout |
 
 ---
 
