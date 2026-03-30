@@ -22,6 +22,7 @@ from streamlit_mic_recorder import mic_recorder
 from gtts import gTTS
 from dotenv import load_dotenv
 import speech_recognition as sr
+import pydub
 
 # ─── Environment ──────────────────────────────────────────────────────────────
 load_dotenv()
@@ -320,11 +321,17 @@ def autoplay_audio(audio_bytes: bytes):
 
 
 def transcribe_audio(audio_bytes: bytes) -> str | None:
-    """Convert raw audio bytes to text using Google Speech Recognition."""
+    """Convert raw webm/browser audio bytes to text using Speech Recognition."""
     try:
+        # Convert browser audio (e.g. webm) to wav
+        webm_io = io.BytesIO(audio_bytes)
+        audio_segment = pydub.AudioSegment.from_file(webm_io)
+        wav_io = io.BytesIO()
+        audio_segment.export(wav_io, format="wav")
+        wav_io.seek(0)
+        
         recognizer = sr.Recognizer()
-        audio_file = io.BytesIO(audio_bytes)
-        with sr.AudioFile(audio_file) as source:
+        with sr.AudioFile(wav_io) as source:
             audio_data = recognizer.record(source)
         return recognizer.recognize_google(audio_data)
     except sr.UnknownValueError:

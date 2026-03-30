@@ -11,3 +11,4 @@ python-dotenv>=1.0
 streamlit-mic-recorder>=0.0.4
 gTTS>=2.4
 SpeechRecognition>=3.10
+pydub
