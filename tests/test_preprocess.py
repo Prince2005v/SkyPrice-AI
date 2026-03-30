@@ -208,6 +208,12 @@ def test_summary_route_format(base_args):
     assert "→" in summary["route"]
 
 
+def test_summary_values(base_args):
+    summary = get_preprocessing_summary(**base_args)
+    assert summary["airline"] == "IndiGo"
+    assert summary["travel_class"] == "Economy"
+
+
 # ─── Coverage Across All Airlines ─────────────────────────────────────────────
 
 @pytest.mark.parametrize("airline", VALID_AIRLINES)

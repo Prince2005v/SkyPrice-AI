@@ -295,7 +295,7 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
         except Exception as e:
             if attempt == 2:
                 return f"❌ Error contacting Gemini after 3 attempts. Please try again later. (Details: {e})"
-            time_module.sleep(1.5 ** attempt)  # Exponential backoff
+            time.sleep(1.5 ** attempt)  # Exponential backoff
             
     return "❌ Connection timeout."
 
