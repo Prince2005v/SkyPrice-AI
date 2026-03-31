@@ -326,14 +326,14 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
 
 
 def render_flight_map(source_name, dest_name):
-    """Render a high-contrast 3D pydeck arc map with labels."""
+    """Render a cinematic 3D satellite tracking map with real airport pins."""
     src_coord = CITY_COORDS.get(source_name)
     dst_coord = CITY_COORDS.get(dest_name)
     
     if not src_coord or not dst_coord:
         return None
 
-    # Layer 1: The Arc (The Flight Path)
+    # Layer 1: The Arc (The High-Altitude Flight Path)
     arc_data = [{
         "from": [src_coord[1], src_coord[0]],
         "to": [dst_coord[1], dst_coord[0]],
@@ -343,51 +343,57 @@ def render_flight_map(source_name, dest_name):
         arc_data,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[255, 127, 0, 200],  # Neon Orange
-        get_target_color=[0, 255, 255, 255],  # Neon Cyan
-        width=8,
+        get_source_color=[0, 198, 255, 200],  # Cyan Glow
+        get_target_color=[236, 72, 153, 255], # Pink Glow (Destination)
+        width=10,
         pickable=True,
     )
 
-    # Layer 2: City Nodes (The Glowing Dots)
+    # Layer 2: Real Locations (Icon-like pins)
     node_data = [
-        {"pos": [src_coord[1], src_coord[0]], "name": source_name, "color": [255, 127, 0]},
-        {"pos": [dst_coord[1], dst_coord[0]], "name": dest_name, "color": [0, 255, 255]}
+        {"pos": [src_coord[1], src_coord[0]], "name": f"🛫 {source_name}", "color": [0, 198, 255], "type": "origin"},
+        {"pos": [dst_coord[1], dst_coord[0]], "name": f"🛬 {dest_name}", "color": [236, 72, 153], "type": "dest"}
     ]
     node_layer = pdk.Layer(
         "ScatterplotLayer",
         node_data,
         get_position="pos",
         get_fill_color="color",
-        get_radius=40000,
+        get_radius=50000,
+        get_line_color=[255, 255, 255],
+        line_width_min_pixels=2,
         pickable=True,
     )
 
-    # Layer 3: Text Labels (The City Names)
+    # Layer 3: High-Visibility Labels
     text_layer = pdk.Layer(
         "TextLayer",
         node_data,
         get_position="pos",
         get_text="name",
         get_color=[255, 255, 255],
-        get_size=20,
+        get_size=24,
         get_alignment_baseline="'bottom'",
+        get_font_weight="'bold'",
     )
 
+    # Cinematic View State
     view_state = pdk.ViewState(
         latitude=(src_coord[0] + dst_coord[0]) / 2,
         longitude=(src_coord[1] + dst_coord[1]) / 2,
-        zoom=4.2,
-        pitch=40,
+        zoom=4.5,
+        pitch=60,    # Cinematic tilt
+        bearing=15,  # Slight angle
     )
 
     r = pdk.Deck(
         layers=[arc_layer, node_layer, text_layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/satellite-streets-v11",
+        map_style="satellite", # Use the built-in high-res provider
         tooltip={"text": "{name}"},
     )
     return r
+
 
 
 def get_skyguide_tips(destination):
