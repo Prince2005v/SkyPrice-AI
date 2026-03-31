@@ -9,6 +9,7 @@ import numpy as np
 import time
 import io
 import base64
+import uuid
 from datetime import datetime, timedelta
 from src.preprocessing import (
     preprocess_input,
@@ -41,6 +42,7 @@ else:
 CITY_COORDS = {
     "Ahmedabad": [23.0772, 72.6347],    # AMD
     "Banglore": [13.1927, 77.7033],     # BLR
+    "Bangalore": [13.1927, 77.7033],    # BLR
     "Chennai": [12.9900, 80.1693],     # MAA
     "Delhi": [28.5686, 77.1122],       # DEL
     "New Delhi": [28.5686, 77.1122],   # DEL
@@ -329,13 +331,18 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
 # ─── Geocoding Utilities ──────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def get_city_coords(city_name: str) -> list[float] | None:
-    """Fetch [lat, lon] for a city name using Geopy with caching."""
-    geolocator = Nominatim(user_agent="skyprice_ai_flight_tracker")
+    """Fetch [lat, lon] for a city name. Prioritizes local dict, then Geopy."""
+    # 1. Quick Local Lookup
+    if city_name in CITY_COORDS:
+        return CITY_COORDS[city_name]
+    
+    # 2. Dynamic Global Lookup (Geopy)
+    geolocator = Nominatim(user_agent=f"skyprice_ai_tracker_{uuid.uuid4().hex[:8]}")
     try:
         location = geolocator.geocode(city_name, timeout=10)
         if location:
             return [location.latitude, location.longitude]
-    except (GeocoderTimedOut, GeocoderServiceError):
+    except:
         pass
     return None
 
