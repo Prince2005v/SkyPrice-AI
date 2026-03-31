@@ -17,7 +17,7 @@ from src.preprocessing import (
     VALID_SOURCES,
     VALID_DESTINATIONS,
 )
-import google.generativeai as genai
+from google import genai
 from streamlit_mic_recorder import mic_recorder
 from gtts import gTTS
 from dotenv import load_dotenv
@@ -30,28 +30,27 @@ load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if GOOGLE_API_KEY:
-    genai.configure(api_key=GOOGLE_API_KEY)
-    model_gemini = genai.GenerativeModel("gemini-1.5-flash")
+    client_genai = genai.Client(api_key=GOOGLE_API_KEY)
 else:
-    model_gemini = None
+    client_genai = None
 
 
 # ─── Constants & Geography ──────────────────────────────────────────────────
 CITY_COORDS = {
-    "Ahmedabad": [23.0225, 72.5714],
-    "Banglore": [12.9716, 77.5946],
-    "Chennai": [13.0827, 80.2707],
-    "Delhi": [28.6139, 77.2090],
-    "New Delhi": [28.6139, 77.2090],
-    "Goa": [15.2993, 74.1240],
-    "Hyderabad": [17.3850, 78.4867],
-    "Jaipur": [26.9124, 75.7873],
-    "Kolkata": [22.5726, 88.3639],
-    "Lucknow": [26.8467, 80.9462],
-    "Mumbai": [19.0760, 72.8777],
-    "Patna": [25.5941, 85.1376],
-    "Pune": [18.5204, 73.8567],
-    "Cochin": [9.9312, 76.2673],
+    "Ahmedabad": [23.0772, 72.6347],    # AMD
+    "Banglore": [13.1927, 77.7033],     # BLR
+    "Chennai": [12.9900, 80.1693],     # MAA
+    "Delhi": [28.5686, 77.1122],       # DEL
+    "New Delhi": [28.5686, 77.1122],   # DEL
+    "Goa": [15.3801, 73.8333],         # GOI
+    "Hyderabad": [17.2300, 78.4319],   # HYD
+    "Jaipur": [26.8242, 75.8122],      # JAI
+    "Kolkata": [22.6547, 88.4467],     # CCU
+    "Lucknow": [26.7606, 80.8903],     # LKO
+    "Mumbai": [19.0887, 72.8679],      # BOM
+    "Patna": [25.5913, 85.0880],       # PAT
+    "Pune": [18.5822, 73.9197],        # PNQ
+    "Cochin": [10.1533, 76.3882],      # COK
 }
 
 
@@ -305,14 +304,17 @@ def build_system_prompt(context: dict | None = None) -> str:
 
 
 def get_ai_response(prompt: str, context: dict | None = None) -> str:
-    if not model_gemini:
+    if not client_genai:
         return "⚠️ Gemini API Key is missing. Please add `GOOGLE_API_KEY` to your `.env` file."
     
     full_prompt = build_system_prompt(context) + f"\n\nUser: {prompt}"
     
     for attempt in range(3):
         try:
-            response = model_gemini.generate_content(full_prompt)
+            response = client_genai.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=full_prompt
+            )
             return response.text
         except Exception as e:
             if attempt == 2:
@@ -320,6 +322,7 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
             time.sleep(1.5 ** attempt)  # Exponential backoff
             
     return "❌ Connection timeout."
+
 
 
 def render_flight_map(source_name, dest_name):
@@ -381,7 +384,7 @@ def render_flight_map(source_name, dest_name):
     r = pdk.Deck(
         layers=[arc_layer, node_layer, text_layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/navigation-night-v1",
+        map_style="mapbox://styles/mapbox/satellite-streets-v11",
         tooltip={"text": "{name}"},
     )
     return r
@@ -389,15 +392,19 @@ def render_flight_map(source_name, dest_name):
 
 def get_skyguide_tips(destination):
     """Get a quick AI travel guide for the destination."""
-    if not model_gemini:
+    if not client_genai:
         return "Enjoy your trip to " + destination + "!"
     
     prompt = f"Provide 3 very short, bulleted travel tips (one for food, one for place to visit, one for local vibe) for {destination}. Be concise and friendly."
     try:
-        response = model_gemini.generate_content(prompt)
+        response = client_genai.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=prompt
+        )
         return response.text
     except:
         return "Enjoy exploring the local culture and cuisine!"
+
 
 
 
@@ -459,7 +466,7 @@ def price_sentiment(price: float) -> tuple[str, str]:
 @st.dialog("🎉 Booking Confirmed", width="large")
 def show_ticket(ctx, passenger_name):
     import uuid
-    pnr = uuid.uuid4().hex[:6].upper()
+    pnr = str(uuid.uuid4().hex)[:6].upper()
     st.balloons()
     st.markdown(
         f"""
@@ -492,7 +499,7 @@ def booking_dialog(ctx):
     p_email = st.text_input("Email Address")
     p_phone = st.text_input("Phone Number")
     
-    if st.button("✅ Confirm Booking", type="primary", use_container_width=True):
+    if st.button("✅ Confirm Booking", type="primary", width="stretch"):
         if p_name and p_email and p_phone:
             st.session_state.trigger_ticket = {"ctx": ctx, "name": p_name}
             st.rerun()
@@ -709,7 +716,7 @@ with st.container():
         # ── Predict Button ─────────────────────────────────────────────────
         predict_col, _ = st.columns([1, 2])
         with predict_col:
-            run_prediction = st.button("🔮 Calculate Fare", type="primary", use_container_width=True)
+            run_prediction = st.button("🔮 Calculate Fare", type="primary", width="stretch")
 
         if run_prediction:
             # Validation
@@ -869,7 +876,7 @@ with st.container():
                             str(days_away),
                         ],
                     })
-                    st.dataframe(detail_df, use_container_width=True, hide_index=True)
+                    st.dataframe(detail_df, width="stretch", hide_index=True)
                     st.caption(
                         f"Feature vector shape: {features.shape} | "
                         f"Active flags: {int(features.sum(axis=1).iloc[0])}"
@@ -877,7 +884,7 @@ with st.container():
 
                 # ── Proceed to Booking Button ──────────────────────────────
                 st.markdown("<br>", unsafe_allow_html=True)
-                st.button("🎫 Proceed to Booking", type="primary", use_container_width=True, on_click=open_booking_modal)
+                st.button("🎫 Proceed to Booking", type="primary", width="stretch", on_click=open_booking_modal)
 
                 # ── LinkedIn Sharing Section ──────────────────────────────────
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -889,7 +896,7 @@ with st.container():
                         f"#DataScience #FlightFarePrediction #AI #Streamlit"
                     )
                     st.code(share_text, language="text")
-                    st.link_button("View Code on GitHub", "https://github.com/Prince2005v/SkyPrice-AI", use_container_width=True)
+                    st.link_button("View Code on GitHub", "https://github.com/Prince2005v/SkyPrice-AI", width="stretch")
 
 
 
@@ -959,7 +966,7 @@ if False:  # AI Travel Assistant moved to floating chat widget below
 
                     # TTS (limit to avoid large payloads)
                     _resp_str: str = str(response_text)
-                    tts_text: str = _resp_str[:400].rsplit(" ", 1)[0]  # pyre-ignore[16]
+                    tts_text: str = str(_resp_str)[:400].rsplit(" ", 1)[0]
                     audio_data = text_to_speech(tts_text)
                     if audio_data:
                         autoplay_audio(audio_data)
