@@ -12,3 +12,4 @@ gTTS>=2.4
 SpeechRecognition>=3.10
 pydubpydeck
 google-genai
+geopy

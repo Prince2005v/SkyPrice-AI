@@ -24,6 +24,8 @@ from dotenv import load_dotenv
 import speech_recognition as sr
 import pydub
 import pydeck as pdk
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
 # ─── Environment ──────────────────────────────────────────────────────────────
 load_dotenv()
@@ -300,37 +302,33 @@ def build_system_prompt(context: dict | None = None) -> str:
             f"Dep={context.get('dep_time')}, Predicted Fare=₹{context.get('predicted_fare', 'N/A')}. "
             "Use this context to give better answers when the user asks follow-up questions."
         )
-    return base
+    return base    return "❌ Connection timeout."
 
 
-def get_ai_response(prompt: str, context: dict | None = None) -> str:
-    if not client_genai:
-        return "⚠️ Gemini API Key is missing. Please add `GOOGLE_API_KEY` to your `.env` file."
-    
-    full_prompt = build_system_prompt(context) + f"\n\nUser: {prompt}"
-    
-    for attempt in range(3):
-        try:
-            response = client_genai.models.generate_content(
-                model="gemini-1.5-flash",
-                contents=full_prompt
-            )
-            return response.text
-        except Exception as e:
-            if attempt == 2:
-                return f"❌ Error contacting Gemini after 3 attempts. Please try again later. (Details: {e})"
-            time.sleep(1.5 ** attempt)  # Exponential backoff
-            
-    return "❌ Connection timeout."
-
+# ─── Geocoding Utilities ──────────────────────────────────────────────────────
+@st.cache_data(show_spinner=False)
+def get_city_coords(city_name: str) -> list[float] | None:
+    """Fetch [lat, lon] for a city name using Geopy with caching."""
+    geolocator = Nominatim(user_agent="skyprice_ai_flight_tracker")
+    try:
+        location = geolocator.geocode(city_name, timeout=10)
+        if location:
+            return [location.latitude, location.longitude]
+    except (GeocoderTimedOut, GeocoderServiceError):
+        pass
+    return None
 
 
 def render_flight_map(source_name, dest_name):
-    """Render a cinematic 3D satellite tracking map with real airport pins."""
-    src_coord = CITY_COORDS.get(source_name)
-    dst_coord = CITY_COORDS.get(dest_name)
+    """Render a cinematic 3D satellite tracking map with dynamic geocoding."""
+    # First, try to fetch coordinates from cache/API
+    with st.spinner(f"📍 Locating {source_name} & {dest_name}…"):
+        src_coord = get_city_coords(source_name)
+        dst_coord = get_city_coords(dest_name)
     
     if not src_coord or not dst_coord:
+        if not src_coord: st.error(f"🔍 City not found: {source_name}")
+        if not dst_coord: st.error(f"🔍 City not found: {dest_name}")
         return None
 
     # Layer 1: The Arc (The High-Altitude Flight Path)
@@ -351,8 +349,8 @@ def render_flight_map(source_name, dest_name):
 
     # Layer 2: Real Locations (Icon-like pins)
     node_data = [
-        {"pos": [src_coord[1], src_coord[0]], "name": f"🛫 {source_name}", "color": [0, 198, 255], "type": "origin"},
-        {"pos": [dst_coord[1], dst_coord[0]], "name": f"🛬 {dest_name}", "color": [236, 72, 153], "type": "dest"}
+        {"pos": [src_coord[1], src_coord[0]], "name": f"🛫 {source_name}", "color": [0, 198, 255]},
+        {"pos": [dst_coord[1], dst_coord[0]], "name": f"🛬 {dest_name}", "color": [236, 72, 153]}
     ]
     node_layer = pdk.Layer(
         "ScatterplotLayer",
@@ -366,6 +364,39 @@ def render_flight_map(source_name, dest_name):
     )
 
     # Layer 3: High-Visibility Labels
+    text_layer = pdk.Layer(
+        "TextLayer",
+        node_data,
+        get_position="pos",
+        get_text="name",
+        get_color=[255, 255, 255],
+        get_size=24,
+        get_alignment_baseline="'bottom'",
+        get_font_weight="'bold'",
+    )
+
+    # Calculate distance for dynamic zoom
+    import math
+    dist = math.sqrt((src_coord[0]-dst_coord[0])**2 + (src_coord[1]-dst_coord[1])**2)
+    dynamic_zoom = max(2.5, 6.5 - (dist / 10))
+
+    # Cinematic View State
+    view_state = pdk.ViewState(
+        latitude=(src_coord[0] + dst_coord[0]) / 2,
+        longitude=(src_coord[1] + dst_coord[1]) / 2,
+        zoom=dynamic_zoom,
+        pitch=50,    # 3D tilt
+        bearing=15,  # Slight angle
+    )
+
+    r = pdk.Deck(
+        layers=[arc_layer, node_layer, text_layer],
+        initial_view_state=view_state,
+        map_style="satellite", 
+        tooltip={"text": "{name}"},
+    )
+    return r
+Labels
     text_layer = pdk.Layer(
         "TextLayer",
         node_data,
