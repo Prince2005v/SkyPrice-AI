@@ -337,7 +337,7 @@ def get_city_coords(city_name: str) -> list[float] | None:
         return CITY_COORDS[city_name]
     
     # 2. Dynamic Global Lookup (Geopy)
-    geolocator = Nominatim(user_agent=f"skyprice_ai_tracker_{uuid.uuid4().hex[:8]}")
+    geolocator = Nominatim(user_agent=f"skyprice_ai_tracker_{str(uuid.uuid4().hex)[:8]}")
     try:
         location = geolocator.geocode(city_name, timeout=10)
         if location:
