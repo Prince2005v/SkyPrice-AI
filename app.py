@@ -302,7 +302,28 @@ def build_system_prompt(context: dict | None = None) -> str:
             f"Dep={context.get('dep_time')}, Predicted Fare=₹{context.get('predicted_fare', 'N/A')}. "
             "Use this context to give better answers when the user asks follow-up questions."
         )
-    return base    return "❌ Connection timeout."
+    return base
+
+
+def get_ai_response(prompt: str, context: dict | None = None) -> str:
+    if not client_genai:
+        return "⚠️ Gemini API Key is missing. Please add `GOOGLE_API_KEY` to your `.env` file."
+    
+    full_prompt = build_system_prompt(context) + f"\n\nUser: {prompt}"
+    
+    for attempt in range(3):
+        try:
+            response = client_genai.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=full_prompt
+            )
+            return response.text
+        except Exception as e:
+            if attempt == 2:
+                return f"❌ Error contacting Gemini after 3 attempts. Please try again later. (Details: {e})"
+            time.sleep(1.5 ** attempt)  # Exponential backoff
+            
+    return "❌ Connection timeout."
 
 
 # ─── Geocoding Utilities ──────────────────────────────────────────────────────
@@ -378,7 +399,7 @@ def render_flight_map(source_name, dest_name):
     # Calculate distance for dynamic zoom
     import math
     dist = math.sqrt((src_coord[0]-dst_coord[0])**2 + (src_coord[1]-dst_coord[1])**2)
-    dynamic_zoom = max(2.5, 6.5 - (dist / 10))
+    dynamic_zoom = max(2.5, 6.5 - (dist / 10.0))
 
     # Cinematic View State
     view_state = pdk.ViewState(
@@ -396,34 +417,7 @@ def render_flight_map(source_name, dest_name):
         tooltip={"text": "{name}"},
     )
     return r
-Labels
-    text_layer = pdk.Layer(
-        "TextLayer",
-        node_data,
-        get_position="pos",
-        get_text="name",
-        get_color=[255, 255, 255],
-        get_size=24,
-        get_alignment_baseline="'bottom'",
-        get_font_weight="'bold'",
-    )
 
-    # Cinematic View State
-    view_state = pdk.ViewState(
-        latitude=(src_coord[0] + dst_coord[0]) / 2,
-        longitude=(src_coord[1] + dst_coord[1]) / 2,
-        zoom=4.5,
-        pitch=60,    # Cinematic tilt
-        bearing=15,  # Slight angle
-    )
-
-    r = pdk.Deck(
-        layers=[arc_layer, node_layer, text_layer],
-        initial_view_state=view_state,
-        map_style="satellite", # Use the built-in high-res provider
-        tooltip={"text": "{name}"},
-    )
-    return r
 
 
 
