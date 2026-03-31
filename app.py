@@ -23,6 +23,7 @@ from gtts import gTTS
 from dotenv import load_dotenv
 import speech_recognition as sr
 import pydub
+import pydeck as pdk
 
 # ─── Environment ──────────────────────────────────────────────────────────────
 load_dotenv()
@@ -33,6 +34,26 @@ if GOOGLE_API_KEY:
     model_gemini = genai.GenerativeModel("gemini-1.5-flash")
 else:
     model_gemini = None
+
+
+# ─── Constants & Geography ──────────────────────────────────────────────────
+CITY_COORDS = {
+    "Ahmedabad": [23.0225, 72.5714],
+    "Banglore": [12.9716, 77.5946],
+    "Chennai": [13.0827, 80.2707],
+    "Delhi": [28.6139, 77.2090],
+    "New Delhi": [28.6139, 77.2090],
+    "Goa": [15.2993, 74.1240],
+    "Hyderabad": [17.3850, 78.4867],
+    "Jaipur": [26.9124, 75.7873],
+    "Kolkata": [22.5726, 88.3639],
+    "Lucknow": [26.8467, 80.9462],
+    "Mumbai": [19.0760, 72.8777],
+    "Patna": [25.5941, 85.1376],
+    "Pune": [18.5204, 73.8567],
+    "Cochin": [9.9312, 76.2673],
+}
+
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -301,6 +322,61 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
     return "❌ Connection timeout."
 
 
+def render_flight_map(source_name, dest_name):
+    """Render a 3D pydeck arc map between two cities."""
+    src_coord = CITY_COORDS.get(source_name)
+    dst_coord = CITY_COORDS.get(dest_name)
+    
+    if not src_coord or not dst_coord:
+        return None
+
+    # Format for Pydeck: [lon, lat]
+    data = [{
+        "from": [src_coord[1], src_coord[0]],
+        "to": [dst_coord[1], dst_coord[0]],
+    }]
+
+    layer = pdk.Layer(
+        "ArcLayer",
+        data,
+        get_source_position="from",
+        get_target_position="to",
+        get_source_color=[0, 198, 255, 160],
+        get_target_color=[0, 114, 255, 255],
+        width=5,
+        pickable=True,
+    )
+
+    view_state = pdk.ViewState(
+        latitude=(src_coord[0] + dst_coord[0]) / 2,
+        longitude=(src_coord[1] + dst_coord[1]) / 2,
+        zoom=3.8,
+        pitch=45,
+    )
+
+    r = pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        map_style="mapbox://styles/mapbox/dark-v11",
+        tooltip=True,
+    )
+    return r
+
+
+def get_skyguide_tips(destination):
+    """Get a quick AI travel guide for the destination."""
+    if not model_gemini:
+        return "Enjoy your trip to " + destination + "!"
+    
+    prompt = f"Provide 3 very short, bulleted travel tips (one for food, one for place to visit, one for local vibe) for {destination}. Be concise and friendly."
+    try:
+        response = model_gemini.generate_content(prompt)
+        return response.text
+    except:
+        return "Enjoy exploring the local culture and cuisine!"
+
+
+
 def text_to_speech(text: str) -> bytes | None:
     try:
         tts = gTTS(text=text, lang="en", slow=False)
@@ -378,6 +454,12 @@ def show_ticket(ctx, passenger_name):
     )
     if st.button("Close Ticket"):
         st.rerun()
+
+    st.markdown("---")
+    st.markdown("### 🗺️ SkyGuide: Local AI Tips")
+    with st.spinner(f"AI is preparing tips for {ctx.get('destination')}…"):
+        tips = get_skyguide_tips(ctx.get('destination', 'your destination'))
+        st.info(tips)
 
 @st.dialog("🎫 Book Your Flight")
 def booking_dialog(ctx):
@@ -524,6 +606,27 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ─── Top Stats Ticker ──────────────────────────────────────────────────────────
+st.markdown(
+    """
+    <div style='display: flex; gap: 20px; background: rgba(30, 41, 59, 0.5); padding: 12px 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 30px;'>
+        <div style='border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;'>
+            <span style='color: #94a3b8; font-size: 0.8rem;'>MODEL ACCURACY</span><br>
+            <span style='color: #38bdf8; font-weight: 700; font-size: 1.1rem;'>85.8% R²</span>
+        </div>
+        <div style='border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;'>
+            <span style='color: #94a3b8; font-size: 0.8rem;'>ACTIVE ROUTES</span><br>
+            <span style='color: #818cf8; font-weight: 700; font-size: 1.1rem;'>12+ Indian Cities</span>
+        </div>
+        <div>
+            <span style='color: #94a3b8; font-size: 0.8rem;'>AI ENGINE</span><br>
+            <span style='color: #fb7185; font-weight: 700; font-size: 1.1rem;'>Gemini 1.5 Flash</span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # MAIN PAGE — PRICE PREDICTOR
 # ══════════════════════════════════════════════════════════════════════════════
@@ -620,7 +723,17 @@ with st.container():
                 st.session_state["last_prediction"] = {
                     **summary,
                     "predicted_fare": f"{prediction:,.0f}",
+                    "source": source,
+                    "destination": destination
                 }
+
+                # ── Route Map ──────────────────────────────────────────────
+                st.markdown("### 🌍 Route Visualization")
+                map_obj = render_flight_map(source, destination)
+                if map_obj:
+                    st.pydeck_chart(map_obj)
+                else:
+                    st.info("🗺️ Visualizing route coordinates…")
 
                 # ── Prediction Card ────────────────────────────────────────
                 low = prediction * 0.90
@@ -741,6 +854,19 @@ with st.container():
                 # ── Proceed to Booking Button ──────────────────────────────
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.button("🎫 Proceed to Booking", type="primary", use_container_width=True, on_click=open_booking_modal)
+
+                # ── LinkedIn Sharing Section ──────────────────────────────────
+                st.markdown("<br>", unsafe_allow_html=True)
+                with st.expander("📢 Looking to Showcase on LinkedIn?"):
+                    st.write("Copy the text below for a professional post about your project!")
+                    share_text = (
+                        f"🚀 Just used my SkyPrice AI tool to predict flight fares for my next trip! "
+                        f"The model predicted a fare of ₹{prediction:,.0f} for {source} to {destination}. "
+                        f"#DataScience #FlightFarePrediction #AI #Streamlit"
+                    )
+                    st.code(share_text, language="text")
+                    st.link_button("View Code on GitHub", "https://github.com/Prince2005v/SkyPrice-AI", use_container_width=True)
+
 
 
 # ══════════════════════════════════════════════════════════════════════════════
