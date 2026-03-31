@@ -323,42 +323,66 @@ def get_ai_response(prompt: str, context: dict | None = None) -> str:
 
 
 def render_flight_map(source_name, dest_name):
-    """Render a 3D pydeck arc map between two cities."""
+    """Render a high-contrast 3D pydeck arc map with labels."""
     src_coord = CITY_COORDS.get(source_name)
     dst_coord = CITY_COORDS.get(dest_name)
     
     if not src_coord or not dst_coord:
         return None
 
-    # Format for Pydeck: [lon, lat]
-    data = [{
+    # Layer 1: The Arc (The Flight Path)
+    arc_data = [{
         "from": [src_coord[1], src_coord[0]],
         "to": [dst_coord[1], dst_coord[0]],
     }]
-
-    layer = pdk.Layer(
+    arc_layer = pdk.Layer(
         "ArcLayer",
-        data,
+        arc_data,
         get_source_position="from",
         get_target_position="to",
-        get_source_color=[0, 198, 255, 160],
-        get_target_color=[0, 114, 255, 255],
-        width=5,
+        get_source_color=[255, 127, 0, 200],  # Neon Orange
+        get_target_color=[0, 255, 255, 255],  # Neon Cyan
+        width=8,
         pickable=True,
+    )
+
+    # Layer 2: City Nodes (The Glowing Dots)
+    node_data = [
+        {"pos": [src_coord[1], src_coord[0]], "name": source_name, "color": [255, 127, 0]},
+        {"pos": [dst_coord[1], dst_coord[0]], "name": dest_name, "color": [0, 255, 255]}
+    ]
+    node_layer = pdk.Layer(
+        "ScatterplotLayer",
+        node_data,
+        get_position="pos",
+        get_fill_color="color",
+        get_radius=40000,
+        pickable=True,
+    )
+
+    # Layer 3: Text Labels (The City Names)
+    text_layer = pdk.Layer(
+        "TextLayer",
+        node_data,
+        get_position="pos",
+        get_text="name",
+        get_color=[255, 255, 255],
+        get_size=20,
+        get_alignment_baseline="'bottom'",
     )
 
     view_state = pdk.ViewState(
         latitude=(src_coord[0] + dst_coord[0]) / 2,
         longitude=(src_coord[1] + dst_coord[1]) / 2,
-        zoom=3.8,
-        pitch=45,
+        zoom=4.2,
+        pitch=40,
     )
 
     r = pdk.Deck(
-        layers=[layer],
+        layers=[arc_layer, node_layer, text_layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/dark-v11",
-        tooltip=True,
+        map_style="mapbox://styles/mapbox/navigation-night-v1",
+        tooltip={"text": "{name}"},
     )
     return r
 
